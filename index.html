@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Votación - Expo Logística y Transporte UPEC 2026</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqrcode/0.0.2/jsqrcode.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.4/html5-qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🎯 SISTEMA DE VOTACIÓN</h1>
+            <p>Expo Logística y Transporte UPEC 2026</p>
+        </header>
+
+        <!-- Main Navigation -->
+        <nav class="nav-tabs">
+            <button class="nav-btn active" data-tab="scanner">📱 Escanear QR</button>
+            <button class="nav-btn" data-tab="resultados">📊 Ver Resultados</button>
+            <button class="nav-btn" data-tab="admin">⚙️ Administración</button>
+        </nav>
+
+        <!-- Scanner Tab -->
+        <section id="scanner" class="tab-content active">
+            <div class="scanner-section">
+                <h2>Escanea el QR del caso para votar</h2>
+                
+                <div class="camera-section">
+                    <div id="html5-qr-code" style="width:100%; max-width: 500px; margin: 0 auto;"></div>
+                </div>
+
+                <div class="info-box">
+                    <h3>Información del Voto</h3>
+                    <p><strong>Categoría Seleccionada:</strong> <span id="categoriaActual">Ninguna</span></p>
+                    <p><strong>Caso/Poster:</strong> <span id="casoActual">Esperando escaneo</span></p>
+                    <p><strong>Estado:</strong> <span id="estadoActual">Listo para escanear</span></p>
+                </div>
+
+                <div class="button-group">
+                    <button onclick="iniciarScanner()" class="btn btn-primary">Iniciar Cámara</button>
+                    <button onclick="detenerScanner()" class="btn btn-secondary">Detener</button>
+                    <button onclick="limpiarVoto()" class="btn btn-danger">Limpiar</button>
+                </div>
+
+                <div id="mensaje" class="mensaje"></div>
+            </div>
+        </section>
+
+        <!-- Resultados Tab -->
+        <section id="resultados" class="tab-content">
+            <div class="resultados-section">
+                <h2>Resultados de Votación</h2>
+                
+                <div class="filtros">
+                    <label>
+                        <input type="radio" name="categoria-filtro" value="todos" checked> 
+                        Todas las Categorías
+                    </label>
+                    <label>
+                        <input type="radio" name="categoria-filtro" value="junior"> 
+                        Casos Junior
+                    </label>
+                    <label>
+                        <input type="radio" name="categoria-filtro" value="senior"> 
+                        Casos Senior
+                    </label>
+                    <label>
+                        <input type="radio" name="categoria-filtro" value="poster"> 
+                        Posters
+                    </label>
+                </div>
+
+                <div class="graficas-container">
+                    <div class="grafica-card">
+                        <h3>📈 Casos Junior</h3>
+                        <canvas id="graficoJunior"></canvas>
+                        <div id="statsJunior" class="stats"></div>
+                    </div>
+
+                    <div class="grafica-card">
+                        <h3>📈 Casos Senior</h3>
+                        <canvas id="graficoSenior"></canvas>
+                        <div id="statsSenior" class="stats"></div>
+                    </div>
+
+                    <div class="grafica-card">
+                        <h3>📈 Posters</h3>
+                        <canvas id="graficoPosters"></canvas>
+                        <div id="statsPosters" class="stats"></div>
+                    </div>
+                </div>
+
+                <div class="tabla-container">
+                    <h3>Detalle de Votos</h3>
+                    <table id="tablaVotos" class="tabla-votos">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre del Proyecto</th>
+                                <th>Categoría</th>
+                                <th>Votos</th>
+                                <th>Porcentaje</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <button onclick="actualizarResultados()" class="btn btn-primary">Actualizar Resultados</button>
+            </div>
+        </section>
+
+        <!-- Admin Tab -->
+        <section id="admin" class="tab-content">
+            <div class="admin-section">
+                <h2>Panel de Administración</h2>
+                
+                <div class="admin-card">
+                    <h3>Exportar/Importar Datos</h3>
+                    <div class="button-group">
+                        <button onclick="exportarDatos()" class="btn btn-primary">📥 Descargar Datos JSON</button>
+                        <button onclick="limpiarBaseDatos()" class="btn btn-danger">🗑️ Limpiar Base de Datos</button>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <h3>Generar QR para Impresión</h3>
+                    <p>Descarga todos los códigos QR para cada caso y poster</p>
+                    <button onclick="generarQRsParaImpresion()" class="btn btn-primary">📋 Generar QRs para Impresión</button>
+                </div>
+
+                <div class="admin-card">
+                    <h3>Estadísticas Generales</h3>
+                    <div id="estadisticas" class="estadisticas">
+                        <p>Total de Votos: <strong id="totalVotos">0</strong></p>
+                        <p>Votos Junior: <strong id="votosJunior">0</strong></p>
+                        <p>Votos Senior: <strong id="votosSenior">0</strong></p>
+                        <p>Votos Posters: <strong id="votosPosters">0</strong></p>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <h3>Dispositivos Únicos que Han Votado</h3>
+                    <div id="dispositivos" class="dispositivos">
+                        <p>Total de dispositivos: <strong id="totalDispositivos">0</strong></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal para confirmación de voto -->
+    <div id="modalVoto" class="modal">
+        <div class="modal-content">
+            <h3>¿Deseas votar por este caso?</h3>
+            <p id="detalleVoto"></p>
+            <div class="button-group">
+                <button onclick="confirmarVoto()" class="btn btn-primary">✓ Sí, Votar</button>
+                <button onclick="cancelarVoto()" class="btn btn-secondary">✗ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

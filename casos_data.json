@@ -1,0 +1,228 @@
+{
+  "junior": [
+    {
+      "codigo": "J4-03",
+      "nombre": "Trazabilidad de Inventarios Cárnicos y Optimización de Fletes Refrigerados con ERP y Analítica",
+      "categoria": "junior"
+    },
+    {
+      "codigo": "J3-05",
+      "nombre": "Panificación Inteligente: Diseño de Línea, Producto y Base de Datos para una Producción Continua y Segura",
+      "categoria": "junior"
+    },
+    {
+      "codigo": "J4-05",
+      "nombre": "Centro de Almacenamiento para Almidones y Licores con Control WMS, ERP y Visualización Ejecutiva",
+      "categoria": "junior"
+    },
+    {
+      "codigo": "J2-06",
+      "nombre": "Tubérculo a Planta, Alcohol Seguro: abastecimiento agrícola y transporte controlado para almidones y licores",
+      "categoria": "junior"
+    },
+    {
+      "codigo": "J2-10",
+      "nombre": "Obra sin Faltantes: abastecimiento y transporte escalonado para infraestructura productiva local",
+      "categoria": "junior"
+    },
+    {
+      "codigo": "J4-02",
+      "nombre": "Rediseño de Almacenes y Reparto Urbano Eficiente para Panificación Regional",
+      "categoria": "junior"
+    },
+    {
+      "codigo": "J2-02",
+      "nombre": "Frío Seguro para Embutidos: sistema básico de aprovisionamiento térmico y distribución primaria para transformadores cárnicos locales",
+      "categoria": "junior"
+    },
+    {
+      "codigo": "J3-04",
+      "nombre": "Arquitectura de Datos y Rediseño Seguro de Estaciones para la Producción de Almidones y Licores",
+      "categoria": "junior"
+    },
+    {
+      "codigo": "J3-03",
+      "nombre": "Gemelo Operativo para Vegetales de Cuarta Gama: Layout de Proceso, Modelado 3D y Base de Datos de Frescura y Lotes",
+      "categoria": "junior"
+    },
+    {
+      "codigo": "J2-01",
+      "nombre": "Ruta Verde de la Leche: red de acopio inteligente y transporte colaborativo para pequeños productores del Carchi",
+      "categoria": "junior"
+    }
+  ],
+  "senior": [
+    {
+      "codigo": "S5-01",
+      "nombre": "Optimización Multiobjetivo y Cumplimiento Legal de la Distribución Láctea en el Carchi",
+      "categoria": "senior"
+    },
+    {
+      "codigo": "S5-02",
+      "nombre": "Análisis Estadístico de Mermas y Optimización de la Cadena de Suministro Cárnica Nacional",
+      "categoria": "senior"
+    },
+    {
+      "codigo": "S8-01",
+      "nombre": "Exportación Láctea con Estándares de Calidad Global: diseño de una DFI inteligente y trazable para derivados lácteos del Carchi",
+      "categoria": "senior"
+    },
+    {
+      "codigo": "S6-06",
+      "nombre": "Cadena de Frío Cárnica Bajo Incertidumbre: Optimización de rutas y riesgo logístico con evidencia inferencial",
+      "categoria": "senior"
+    },
+    {
+      "codigo": "S8-02",
+      "nombre": "Logística Portuaria Reefer para Cárnicos de Alta Gama: control de calidad y administración de operaciones para exportación segura",
+      "categoria": "senior"
+    },
+    {
+      "codigo": "S6-03",
+      "nombre": "Ventana Intermodal Hortofrutícola: diseño de red y consolidación transfronteriza para frutas y vegetales frescos",
+      "categoria": "senior"
+    },
+    {
+      "codigo": "S5-04",
+      "nombre": "Modelado Logístico para la Distribución Física Internacional de Derivados de Almidones y Licores",
+      "categoria": "senior"
+    },
+    {
+      "codigo": "S7-05",
+      "nombre": "Microhubs Urbanos Rentables: simulación XR y evaluación de proyectos de última milla para ciudades inteligentes",
+      "categoria": "senior"
+    },
+    {
+      "codigo": "S6-01",
+      "nombre": "Corredor Intermodal Lácteo Inteligente: red probabilística y optimización de exportación desde el Carchi",
+      "categoria": "senior"
+    },
+    {
+      "codigo": "S6-04",
+      "nombre": "Sincronía Papa–Puerto: planificación intermodal y logística colaborativa para almidones y licores",
+      "categoria": "senior"
+    }
+  ],
+  "posters": [
+    {
+      "codigo": "TIC-1",
+      "nombre": "Logística verde y la gestión de abastecimiento en la microempresa de lácteos \"El Carmelo S.C.A.\"",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-2",
+      "nombre": "\"Diseño de rutas y reducción de costos operativos para la distribución de Gas Licuado de Petróleo (GLP) en la zona 17 de Tulcán de la empresa VEPAGAS\"",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-3",
+      "nombre": "Gestión del transporte y los costos operativos en la compañía internacional de carga YANCA CIA. LTDA.",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-4",
+      "nombre": "Gestión del transporte y calidad del servicio de la compañía Selicaf C.A.",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-5",
+      "nombre": "Consolidación de carga y optimización del transporte en las Floricolas de la parroquia La Esperanza, cantón Pedro Moncayo",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-6",
+      "nombre": "“Estructura de los nodos logísticos en la \neficiencia operativa de la cadena logística del \nmaracuyá ecuatoriano”",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-7",
+      "nombre": "Estructura de los nodos logísticos en la eficiencia operativa de la cadena logística de\nlas langostas ecuatorianas",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-8",
+      "nombre": "Diseño de un modelo de rutas y la eficacia operativa de la empresa Encomiendas Ecuador S. A. S., sede cuidar de Ibarra.",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-9",
+      "nombre": "Estructura de los nodos logísticos en la eficiencia\noperativa de la cadena logística del cangrejo ecuatoriano",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-10",
+      "nombre": "Estructura de los nodos logísticos en la eficiencia operativa de la cadena logística de pulpa de fruta ecuatoriana",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-11",
+      "nombre": "Gestión del transporte y la calidad de servicio de la Cooperativa de Taxis “German Grijalva” de la ciudad de Ibarra",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-12",
+      "nombre": "Logística inversa y la economía circular en lubricadoras \ndel sector El Terminal de la ciudad de Tulcán”",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-13",
+      "nombre": "“Estructura de los nodos logísticos en la eficiencia operativa de la cadena logística de la balsa ecuatoriana.",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-14",
+      "nombre": "Logística de abastecimiento y control de inventarios de la comercializadora Visión Colorida",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-15",
+      "nombre": "Optimización de rutas y reducción de costos operativos de la empresa Encomiendas Ecuador S.A.S., en la sucursal de Quito",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-16",
+      "nombre": "Optimización de los niveles de inventario en la gestión de abastecimiento de la Papelería Carchi",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-17",
+      "nombre": "Gestión logística y la rentabilidad de la empresa \n“Laboratorio Automotriz Solución Diesel”",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-18",
+      "nombre": "Estructura de los nodos logísticos en la eficiencia operativa de la \ncadena logística del cacao ecuatoriano.",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-19",
+      "nombre": "Gestión de Almacenamiento y Control de Inventario de la Papelería GD Distribuidora",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-20",
+      "nombre": "Gestión del transporte y costos operativos de la empresa Gonzalo E. Montenegro Rodríguez Servicios de Transporte de Carga Pesada S.A.",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-21",
+      "nombre": "Gestión del abastecimiento y la distribución física en el sector menaje de la Comercializadora del Norte.",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-22",
+      "nombre": "Sistema de predicción de costos de transporte de carga pesada utilizando herramientas de inteligencia artificial",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-23",
+      "nombre": "Gestión del transporte y los costos operativos de la Compañía de Transporte PEsado Express de la Sierra SIERRCAREX S.A.",
+      "categoria": "poster"
+    },
+    {
+      "codigo": "TIC-24",
+      "nombre": "Estructura de los nodos logísticos en la eficiencia operativa de la cadena logística de los sombreros de paja Toquilla ecuatorianos",
+      "categoria": "poster"
+    }
+  ]
+}
