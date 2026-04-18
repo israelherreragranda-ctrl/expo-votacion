@@ -523,3 +523,4 @@ function generarQRsParaImpresion() {
         mostrarMensaje('✅ QRs generados. Imprime desde la nueva ventana (Ctrl+P)', 'success');
     }, 1000);
 }
+
