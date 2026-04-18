@@ -138,6 +138,10 @@ function iniciarScanner() {
 // Callback cuando se escanea un QR
 function onScanSuccess(decodedText, decodedResult) {
     console.log('QR escaneado:', decodedText);
+    // NO PAUSAR - continuar escaneando
+    if (html5QrcodeScanner) {
+        html5QrcodeScanner.resume();
+    }
     procesarCodigoQR(decodedText.trim());
 }
 
@@ -147,10 +151,8 @@ function onScanFailure(error) {
 
 // Procesar código QR escaneado
 function procesarCodigoQR(codigo) {
-    // Detener scanner temporalmente
-    if (html5QrcodeScanner) {
-        html5QrcodeScanner.pause(true);
-    }
+    // NO detener scanner - mantenerlo activo
+    console.log('Procesando código:', codigo);
 
     // Buscar el caso
     let casEncontrado = null;
@@ -167,9 +169,6 @@ function procesarCodigoQR(codigo) {
 
     if (!casEncontrado) {
         mostrarMensaje('❌ Código QR no válido', 'error');
-        if (html5QrcodeScanner) {
-            html5QrcodeScanner.resume();
-        }
         return;
     }
 
@@ -177,19 +176,13 @@ function procesarCodigoQR(codigo) {
     const votoAnterior = localStorage.getItem(`voto_${categoria}`);
     if (votoAnterior && votoAnterior !== codigo) {
         mostrarMensaje(`❌ Ya votaste por un caso ${categoria}. Solo puedes votar una vez por categoría.`, 'error');
-        if (html5QrcodeScanner) {
-            html5QrcodeScanner.resume();
-        }
         return;
     }
 
     // Verificar si ya votó por este caso específico desde este dispositivo
     const votosActuales = votosData[codigo];
-    if (votosActuales.dispositivos.includes(dispositivoId)) {
+    if (votosActuales && votosActuales.dispositivos.includes(dispositivoId)) {
         mostrarMensaje(`❌ Ya has votado por este caso. No se permiten votos duplicados.`, 'error');
-        if (html5QrcodeScanner) {
-            html5QrcodeScanner.resume();
-        }
         return;
     }
 
@@ -249,11 +242,8 @@ function confirmarVoto() {
     votoEnProceso = null;
     document.getElementById('estadoActual').textContent = 'Voto registrado exitosamente';
 
-    // Reanudar scanner después de 2 segundos
+    // El scanner sigue activo, solo limpiar la UI
     setTimeout(() => {
-        if (html5QrcodeScanner) {
-            html5QrcodeScanner.resume();
-        }
         limpiarVoto();
     }, 2000);
 
@@ -266,9 +256,7 @@ function cancelarVoto() {
     document.getElementById('modalVoto').classList.remove('show');
     votoEnProceso = null;
     
-    if (html5QrcodeScanner) {
-        html5QrcodeScanner.resume();
-    }
+    // El scanner sigue activo
 }
 
 // Detener scanner
@@ -553,7 +541,7 @@ function limpiarBaseDatos() {
     }
 }
 
-// Generar QRs para impresión
+// Generar QRs para impresión - VERSIÓN MEJORADA
 function generarQRsParaImpresion() {
     mostrarMensaje('⏳ Generando QRs... Por favor espera.', 'info');
     
@@ -563,51 +551,56 @@ function generarQRsParaImpresion() {
     <head>
         <meta charset="UTF-8">
         <title>QRs para Impresión - Expo Logística UPEC 2026</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
         <style>
-            body { font-family: Arial, sans-serif; padding: 20px; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: Arial, sans-serif; padding: 20px; background: white; }
             .qr-container { 
                 page-break-inside: avoid;
                 display: inline-block; 
-                margin: 10px; 
-                padding: 15px;
+                margin: 15px; 
+                padding: 20px;
                 border: 2px solid #ccc;
                 text-align: center;
-                width: 250px;
+                width: 280px;
+                background: white;
+                vertical-align: top;
             }
-            .qr-container h3 { margin: 0 0 10px 0; }
-            .qr-container p { margin: 10px 0; font-size: 12px; }
-            .qr-container img { width: 200px; height: 200px; }
+            .qr-container h3 { margin: 10px 0; font-size: 18px; font-weight: bold; }
+            .qr-container p { margin: 8px 0; font-size: 11px; line-height: 1.4; }
+            .qr-box { margin: 15px auto; }
+            .qr-box canvas { max-width: 100%; height: auto; border: 1px solid #ddd; }
             .categoria { 
                 font-weight: bold; 
-                padding: 5px 10px; 
+                padding: 8px 12px; 
                 border-radius: 3px;
                 display: inline-block;
                 margin-bottom: 10px;
+                font-size: 12px;
             }
-            .junior { background: #FFE699; }
-            .senior { background: #B4C6E7; }
-            .poster { background: #C5E0B4; }
-            h1 { text-align: center; color: #1f4e78; }
-            h2 { color: #1f4e78; margin-top: 30px; border-bottom: 2px solid #1f4e78; }
+            .junior { background: #FFE699; color: #000; }
+            .senior { background: #B4C6E7; color: #000; }
+            .poster { background: #C5E0B4; color: #000; }
+            h1 { text-align: center; color: #1f4e78; margin: 30px 0 20px 0; font-size: 24px; }
+            h2 { color: #1f4e78; margin: 40px 0 20px 0; font-size: 18px; border-bottom: 3px solid #1f4e78; padding-bottom: 10px; }
             .wrapper { display: flex; flex-wrap: wrap; justify-content: center; }
+            .codigo-bajo { font-weight: bold; margin-top: 10px; font-size: 14px; }
         </style>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     </head>
     <body>
-        <h1>Códigos QR para la Expo Logística y Transporte UPEC 2026</h1>
+        <h1>🎯 Códigos QR - Expo Logística y Transporte UPEC 2026</h1>
     `;
 
     // CASOS JUNIOR
     html += '<h2>CASOS JUNIOR</h2><div class="wrapper">';
     casosData.junior.forEach((caso, idx) => {
-        const qrValue = caso.codigo;
         html += `
             <div class="qr-container">
                 <div class="categoria junior">JUNIOR</div>
                 <h3>${caso.codigo}</h3>
-                <p style="font-size: 11px; line-height: 1.3;">${caso.nombre.substring(0, 50)}...</p>
-                <div id="qr_junior_${idx}"></div>
-                <p style="margin-top: 10px; font-weight: bold;">${qrValue}</p>
+                <p>${caso.nombre.substring(0, 45)}...</p>
+                <div class="qr-box" id="qr_junior_${idx}"></div>
+                <div class="codigo-bajo">${caso.codigo}</div>
             </div>
         `;
     });
@@ -616,59 +609,99 @@ function generarQRsParaImpresion() {
     // CASOS SENIOR
     html += '<h2>CASOS SENIOR</h2><div class="wrapper">';
     casosData.senior.forEach((caso, idx) => {
-        const qrValue = caso.codigo;
         html += `
             <div class="qr-container">
                 <div class="categoria senior">SENIOR</div>
                 <h3>${caso.codigo}</h3>
-                <p style="font-size: 11px; line-height: 1.3;">${caso.nombre.substring(0, 50)}...</p>
-                <div id="qr_senior_${idx}"></div>
-                <p style="margin-top: 10px; font-weight: bold;">${qrValue}</p>
+                <p>${caso.nombre.substring(0, 45)}...</p>
+                <div class="qr-box" id="qr_senior_${idx}"></div>
+                <div class="codigo-bajo">${caso.codigo}</div>
             </div>
         `;
     });
     html += '</div>';
 
     // POSTERS
-    html += '<h2>POSTERS</h2><div class="wrapper">';
+    html += '<h2>POSTERS - TRABAJOS DE INTEGRACIÓN CURRICULAR</h2><div class="wrapper">';
     casosData.posters.forEach((caso, idx) => {
-        const qrValue = caso.codigo;
         html += `
             <div class="qr-container">
                 <div class="categoria poster">POSTER</div>
                 <h3>${caso.codigo}</h3>
-                <p style="font-size: 11px; line-height: 1.3;">${caso.nombre.substring(0, 50)}...</p>
-                <div id="qr_poster_${idx}"></div>
-                <p style="margin-top: 10px; font-weight: bold;">${qrValue}</p>
+                <p>${caso.nombre.substring(0, 45)}...</p>
+                <div class="qr-box" id="qr_poster_${idx}"></div>
+                <div class="codigo-bajo">${caso.codigo}</div>
             </div>
         `;
     });
     html += '</div>';
 
+    html += '<script>console.log("Iniciando generación de QRs...");<\/script>';
     html += '</body></html>';
 
-    // Crear ventana nueva y generar QRs
-    const newWindow = window.open('', '', 'width=1200,height=800');
+    // Crear ventana nueva
+    const newWindow = window.open('', 'QRs', 'width=1400,height=900');
     newWindow.document.write(html);
     newWindow.document.close();
 
-    // Generar QRs en la nueva ventana
+    // Generar QRs con delay para garantizar que se carguen
     setTimeout(() => {
-        casosData.junior.forEach((caso, idx) => {
-            const element = newWindow.document.getElementById(`qr_junior_${idx}`);
-            if (element) new QRCode(element, { text: caso.codigo, width: 200, height: 200 });
-        });
+        try {
+            casosData.junior.forEach((caso, idx) => {
+                try {
+                    const element = newWindow.document.getElementById(`qr_junior_${idx}`);
+                    if (element) {
+                        new QRCode(element, {
+                            text: caso.codigo,
+                            width: 180,
+                            height: 180,
+                            colorDark: "#000000",
+                            colorLight: "#ffffff"
+                        });
+                    }
+                } catch(e) {
+                    console.log('Error QR Junior', idx, e);
+                }
+            });
 
-        casosData.senior.forEach((caso, idx) => {
-            const element = newWindow.document.getElementById(`qr_senior_${idx}`);
-            if (element) new QRCode(element, { text: caso.codigo, width: 200, height: 200 });
-        });
+            casosData.senior.forEach((caso, idx) => {
+                try {
+                    const element = newWindow.document.getElementById(`qr_senior_${idx}`);
+                    if (element) {
+                        new QRCode(element, {
+                            text: caso.codigo,
+                            width: 180,
+                            height: 180,
+                            colorDark: "#000000",
+                            colorLight: "#ffffff"
+                        });
+                    }
+                } catch(e) {
+                    console.log('Error QR Senior', idx, e);
+                }
+            });
 
-        casosData.posters.forEach((caso, idx) => {
-            const element = newWindow.document.getElementById(`qr_poster_${idx}`);
-            if (element) new QRCode(element, { text: caso.codigo, width: 200, height: 200 });
-        });
+            casosData.posters.forEach((caso, idx) => {
+                try {
+                    const element = newWindow.document.getElementById(`qr_poster_${idx}`);
+                    if (element) {
+                        new QRCode(element, {
+                            text: caso.codigo,
+                            width: 180,
+                            height: 180,
+                            colorDark: "#000000",
+                            colorLight: "#ffffff"
+                        });
+                    }
+                } catch(e) {
+                    console.log('Error QR Poster', idx, e);
+                }
+            });
 
-        mostrarMensaje('✅ QRs generados. Imprime desde la nueva ventana (Ctrl+P)', 'success');
-    }, 500);
+            mostrarMensaje('✅ QRs generados correctamente. Imprime desde la nueva ventana (Ctrl+P)', 'success');
+        } catch(e) {
+            mostrarMensaje('⚠️ QRs generados. Si no ves los códigos, intenta recargar (Ctrl+R)', 'info');
+            console.log('Error general:', e);
+        }
+    }, 1000);
 }
