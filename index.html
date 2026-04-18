@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎯 Sistema de Votación - Expo Logística UPEC 2026</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqrcode/0.0.1/jsqrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -61,7 +61,7 @@
             color: #666;
             transition: all 0.3s;
             white-space: nowrap;
-            min-width: 150px;
+            min-width: 120px;
         }
 
         .nav-btn:hover {
@@ -97,11 +97,18 @@
             border-radius: 8px;
             overflow: hidden;
             background: #f9f9f9;
+            position: relative;
         }
 
-        video, canvas {
+        video {
             width: 100%;
             display: block;
+            background: #000;
+            max-height: 400px;
+        }
+
+        canvas {
+            display: none;
         }
 
         .button-group {
@@ -304,7 +311,8 @@
                     <h2>Escanea el QR del caso para votar</h2>
                     
                     <div class="scanner-box">
-                        <canvas id="canvas"></canvas>
+                        <video id="videoScanner" playsinline></video>
+                        <canvas id="canvasScanner"></canvas>
                     </div>
 
                     <div class="button-group">
@@ -398,6 +406,7 @@
         </div>
     </div>
 
+    <script src="casos_data.json"></script>
     <script src="app.js"></script>
     <script>
         // Inicializar tabs
@@ -415,6 +424,76 @@
                 }
             });
         });
+
+        // Iniciar scanner mejorado
+        function iniciarScanner() {
+            const video = document.getElementById('videoScanner');
+            const canvas = document.getElementById('canvasScanner');
+            
+            if (!video || !canvas) {
+                mostrarMensaje('Error: Elementos de video no encontrados', 'error');
+                return;
+            }
+
+            navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } 
+            }).then(stream => {
+                video.srcObject = stream;
+                video.setAttribute('playsinline', true);
+                video.play();
+                
+                const ctx = canvas.getContext('2d');
+                let scanning = true;
+                
+                const scan = () => {
+                    if (!scanning || video.readyState !== video.HAVE_ENOUGH_DATA) {
+                        requestAnimationFrame(scan);
+                        return;
+                    }
+                    
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0);
+                    
+                    try {
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const codigo = jsQR(imageData.data, canvas.width, canvas.height);
+                        
+                        if (codigo && codigo.data) {
+                            console.log('✅ QR detectado:', codigo.data);
+                            scanning = false;
+                            detenerScanner();
+                            procesarCodigoQR(codigo.data);
+                            return;
+                        }
+                    } catch(e) {
+                        console.log('Escaneando...');
+                    }
+                    
+                    requestAnimationFrame(scan);
+                };
+                
+                window.scanningProcess = { scan, scanning: () => scanning, stop: () => { scanning = false; } };
+                scan();
+                mostrarMensaje('✅ Cámara iniciada. Apunta a un código QR.', 'info');
+                
+            }).catch(err => {
+                mostrarMensaje('❌ Error al acceder a la cámara: ' + err.message, 'error');
+                console.error('Error:', err);
+            });
+        }
+
+        // Detener scanner
+        function detenerScanner() {
+            const video = document.getElementById('videoScanner');
+            if (video && video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+            if (window.scanningProcess) {
+                window.scanningProcess.stop();
+            }
+        }
 
         // Procesar código manual
         function procesarCodigoManual() {
