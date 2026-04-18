@@ -2,18 +2,23 @@
 let casosData = {};
 let votosData = {};
 let dispositivoId = generarIdDispositivo();
-let html5QrcodeScanner = null;
 let votoEnProceso = null;
 let graficos = {};
+
+// CONFIGURACIÓN DE GOOGLE SHEETS
+const GOOGLE_SHEET_ID = '1O2Cp2V2wPrEQ1bSRkdVaLNMA_HxfW4aKALLreTY3YDE';
+const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRpD_EgbzXa7qhlfMbehCE8CJeg66iHDmVjo9TbEnxn8qVm_zdetW5lWPsamjSNDlh/exec';
 
 // Inicializar la aplicación
 document.addEventListener('DOMContentLoaded', function() {
     cargarDatos();
-    configurarTabs();
-    configurarFiltros();
     inicializarLocalStorage();
+    sincronizarConNube();
     actualizarEstadisticas();
     actualizarResultados();
+    
+    // Sincronizar cada 10 segundos
+    setInterval(sincronizarConNube, 10000);
 });
 
 // Generar ID único para cada dispositivo
@@ -31,15 +36,10 @@ async function cargarDatos() {
     try {
         const response = await fetch('casos_data.json');
         casosData = await response.json();
-        console.log('Datos cargados:', casosData);
+        console.log('✅ Datos de casos cargados');
     } catch (error) {
         console.error('Error al cargar datos:', error);
-        // Usar datos de fallback
-        casosData = {
-            junior: [],
-            senior: [],
-            posters: []
-        };
+        casosData = { junior: [], senior: [], posters: [] };
     }
 }
 
@@ -80,81 +80,94 @@ function inicializarLocalStorage() {
     votosData = JSON.parse(localStorage.getItem('votosData'));
 }
 
-// Configurar tabs
-function configurarTabs() {
-    const navBtns = document.querySelectorAll('.nav-btn');
-    navBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const tabName = this.getAttribute('data-tab');
-            abrirTab(tabName);
-        });
-    });
-}
-
-// Abrir tab
-function abrirTab(tabName) {
-    // Ocultar todos los tabs
-    const tabs = document.querySelectorAll('.tab-content');
-    tabs.forEach(tab => tab.classList.remove('active'));
-    
-    // Remover clase active de botones
-    const navBtns = document.querySelectorAll('.nav-btn');
-    navBtns.forEach(btn => btn.classList.remove('active'));
-    
-    // Mostrar tab seleccionado
-    document.getElementById(tabName).classList.add('active');
-    event.target.classList.add('active');
-    
-    // Actualizar resultados cuando se abre la pestaña
-    if (tabName === 'resultados') {
-        setTimeout(() => {
+// SINCRONIZACIÓN CON GOOGLE SHEETS
+async function sincronizarConNube() {
+    try {
+        // Leer datos de la nube
+        const datosNube = await leerDatosNube();
+        
+        if (datosNube && Object.keys(datosNube).length > 0) {
+            // Fusionar datos: nube tiene prioridad
+            votosData = { ...votosData, ...datosNube };
+            localStorage.setItem('votosData', JSON.stringify(votosData));
+            actualizarEstadisticas();
             actualizarResultados();
-        }, 100);
+            console.log('✅ Datos sincronizados desde la nube');
+        }
+        
+        // Enviar datos locales a la nube
+        await enviarDatosNube(votosData);
+        
+    } catch (error) {
+        console.error('Error de sincronización:', error);
     }
 }
 
-// Iniciar scanner
-function iniciarScanner() {
-    const config = {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        rememberLastUsedCamera: true
-    };
-
-    html5QrcodeScanner = new Html5Qrcode("html5-qr-code");
-    
-    html5QrcodeScanner.start(
-        { facingMode: "environment" },
-        config,
-        onScanSuccess,
-        onScanFailure
-    ).catch(err => {
-        mostrarMensaje('Error al iniciar cámara: ' + err, 'error');
-    });
-
-    mostrarMensaje('Cámara iniciada. Apunta a un código QR.', 'info');
-}
-
-// Callback cuando se escanea un QR
-function onScanSuccess(decodedText, decodedResult) {
-    console.log('QR escaneado:', decodedText);
-    // NO PAUSAR - continuar escaneando
-    if (html5QrcodeScanner) {
-        html5QrcodeScanner.resume();
+// Leer datos de Google Sheets
+async function leerDatosNube() {
+    try {
+        const response = await fetch(GOOGLE_APPS_SCRIPT_URL);
+        const datos = await response.json();
+        
+        if (Array.isArray(datos) && datos.length > 0) {
+            const votosNube = {};
+            
+            // Convertir array a objeto
+            for (let i = 1; i < datos.length; i++) {
+                const fila = datos[i];
+                if (fila[0]) {
+                    votosNube[fila[0]] = {
+                        votos: parseInt(fila[1]) || 0,
+                        categoria: fila[2] || '',
+                        nombre: fila[3] || '',
+                        dispositivos: fila[4] ? JSON.parse(fila[4]) : []
+                    };
+                }
+            }
+            
+            return votosNube;
+        }
+        
+        return {};
+        
+    } catch (error) {
+        console.error('Error al leer de la nube:', error);
+        return {};
     }
-    procesarCodigoQR(decodedText.trim());
 }
 
-function onScanFailure(error) {
-    // Silenciar errores de lectura
+// Enviar datos a Google Sheets
+async function enviarDatosNube(datos) {
+    try {
+        const filas = [['Código', 'Votos', 'Categoría', 'Nombre', 'Dispositivos']];
+        
+        for (let codigo in datos) {
+            const voto = datos[codigo];
+            filas.push([
+                codigo,
+                voto.votos,
+                voto.categoria,
+                voto.nombre,
+                JSON.stringify(voto.dispositivos)
+            ]);
+        }
+        
+        await fetch(GOOGLE_APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(filas)
+        });
+        
+        console.log('✅ Datos enviados a la nube');
+        
+    } catch (error) {
+        console.error('Error al enviar a la nube:', error);
+    }
 }
 
-// Procesar código QR escaneado
+// Procesar código QR
 function procesarCodigoQR(codigo) {
-    // NO detener scanner - mantenerlo activo
     console.log('Procesando código:', codigo);
 
-    // Buscar el caso
     let casEncontrado = null;
     let categoria = null;
 
@@ -162,7 +175,7 @@ function procesarCodigoQR(codigo) {
         const caso = casosData[cat].find(c => c.codigo === codigo);
         if (caso) {
             casEncontrado = caso;
-            categoria = cat.slice(0, -1); // junior, senior, poster
+            categoria = cat.slice(0, -1);
             break;
         }
     }
@@ -172,28 +185,24 @@ function procesarCodigoQR(codigo) {
         return;
     }
 
-    // Verificar si ya votó por esta categoría
     const votoAnterior = localStorage.getItem(`voto_${categoria}`);
     if (votoAnterior && votoAnterior !== codigo) {
-        mostrarMensaje(`❌ Ya votaste por un caso ${categoria}. Solo puedes votar una vez por categoría.`, 'error');
+        mostrarMensaje(`❌ Ya votaste por un caso ${categoria}. Solo una vez por categoría.`, 'error');
         return;
     }
 
-    // Verificar si ya votó por este caso específico desde este dispositivo
     const votosActuales = votosData[codigo];
     if (votosActuales && votosActuales.dispositivos.includes(dispositivoId)) {
-        mostrarMensaje(`❌ Ya has votado por este caso. No se permiten votos duplicados.`, 'error');
+        mostrarMensaje(`❌ Ya has votado por este caso.`, 'error');
         return;
     }
 
-    // Preparar voto
     votoEnProceso = {
         codigo: codigo,
         nombre: casEncontrado.nombre,
         categoria: categoria
     };
 
-    // Mostrar modal de confirmación
     document.getElementById('detalleVoto').innerHTML = `
         <strong>Categoría:</strong> ${categoria.toUpperCase()}<br>
         <strong>Código:</strong> ${codigo}<br>
@@ -201,7 +210,6 @@ function procesarCodigoQR(codigo) {
     `;
     document.getElementById('modalVoto').classList.add('show');
 
-    // Actualizar info box
     document.getElementById('categoriaActual').textContent = categoria.toUpperCase();
     document.getElementById('casoActual').textContent = `${codigo} - ${casEncontrado.nombre}`;
     document.getElementById('estadoActual').textContent = 'Confirma tu voto';
@@ -213,7 +221,6 @@ function confirmarVoto() {
 
     const { codigo, nombre, categoria } = votoEnProceso;
 
-    // Registrar el voto
     if (!votosData[codigo]) {
         votosData[codigo] = {
             votos: 0,
@@ -225,29 +232,20 @@ function confirmarVoto() {
 
     votosData[codigo].votos++;
     votosData[codigo].dispositivos.push(dispositivoId);
-
-    // Registrar el voto anterior para esta categoría
     localStorage.setItem(`voto_${categoria}`, codigo);
-
-    // Guardar en localStorage
     localStorage.setItem('votosData', JSON.stringify(votosData));
 
-    // Mostrar mensaje de éxito
     mostrarMensaje(`✅ ¡Voto registrado! Gracias por votar por ${codigo}`, 'success');
 
-    // Cerrar modal
     document.getElementById('modalVoto').classList.remove('show');
-
-    // Limpiar
     votoEnProceso = null;
     document.getElementById('estadoActual').textContent = 'Voto registrado exitosamente';
 
-    // El scanner sigue activo, solo limpiar la UI
     setTimeout(() => {
         limpiarVoto();
+        sincronizarConNube();
     }, 2000);
 
-    // Actualizar estadísticas
     actualizarEstadisticas();
 }
 
@@ -255,18 +253,6 @@ function confirmarVoto() {
 function cancelarVoto() {
     document.getElementById('modalVoto').classList.remove('show');
     votoEnProceso = null;
-    
-    // El scanner sigue activo
-}
-
-// Detener scanner
-function detenerScanner() {
-    if (html5QrcodeScanner) {
-        html5QrcodeScanner.stop().catch(err => {
-            console.error('Error al detener scanner:', err);
-        });
-    }
-    mostrarMensaje('Cámara detenida', 'info');
 }
 
 // Limpiar voto
@@ -280,46 +266,58 @@ function limpiarVoto() {
 // Mostrar mensaje
 function mostrarMensaje(texto, tipo = 'info') {
     const msgElement = document.getElementById('mensaje');
-    msgElement.textContent = texto;
-    msgElement.className = `mensaje ${tipo}`;
-    
-    setTimeout(() => {
-        msgElement.textContent = '';
-        msgElement.className = 'mensaje';
-    }, 5000);
+    if (msgElement) {
+        msgElement.textContent = texto;
+        msgElement.className = `mensaje show ${tipo}`;
+        
+        setTimeout(() => {
+            msgElement.classList.remove('show');
+        }, 4000);
+    }
 }
 
-// Configurar filtros
-function configurarFiltros() {
-    const filtros = document.querySelectorAll('input[name="categoria-filtro"]');
-    filtros.forEach(filtro => {
-        filtro.addEventListener('change', actualizarResultados);
-    });
+// Actualizar estadísticas
+function actualizarEstadisticas() {
+    let totalVotos = 0;
+    let votosJunior = 0;
+    let votosSenior = 0;
+    let votosPosters = 0;
+
+    for (let codigo in votosData) {
+        const voto = votosData[codigo];
+        totalVotos += voto.votos;
+        
+        if (voto.categoria === 'junior') votosJunior += voto.votos;
+        else if (voto.categoria === 'senior') votosSenior += voto.votos;
+        else if (voto.categoria === 'poster') votosPosters += voto.votos;
+    }
+
+    const totalVotosEl = document.getElementById('totalVotos');
+    if (totalVotosEl) totalVotosEl.textContent = totalVotos;
+    
+    const votosJuniorEl = document.getElementById('votosJunior');
+    if (votosJuniorEl) votosJuniorEl.textContent = votosJunior;
+    
+    const votosSeniorEl = document.getElementById('votosSenior');
+    if (votosSeniorEl) votosSeniorEl.textContent = votosSenior;
+    
+    const votosPosEl = document.getElementById('votosPosters');
+    if (votosPosEl) votosPosEl.textContent = votosPosters;
+
+    const dispositivos = new Set();
+    for (let codigo in votosData) {
+        votosData[codigo].dispositivos.forEach(d => dispositivos.add(d));
+    }
+    
+    const dispEl = document.getElementById('totalDispositivos');
+    if (dispEl) dispEl.textContent = dispositivos.size;
 }
 
 // Actualizar resultados
 function actualizarResultados() {
-    const categoriaSeleccionada = document.querySelector('input[name="categoria-filtro"]:checked').value;
-    
-    // Calcular datos para gráficas
-    const datosGraficas = {
-        junior: calcularDatosCategoria('junior'),
-        senior: calcularDatosCategoria('senior'),
-        poster: calcularDatosCategoria('poster')
-    };
-
-    // Crear gráficas
-    crearGrafica('graficoJunior', datosGraficas.junior, 'Casos Junior');
-    crearGrafica('graficoSenior', datosGraficas.senior, 'Casos Senior');
-    crearGrafica('graficoPosters', datosGraficas.poster, 'Posters');
-
-    // Mostrar estadísticas
-    mostrarEstadisticas('statsJunior', datosGraficas.junior);
-    mostrarEstadisticas('statsSenior', datosGraficas.senior);
-    mostrarEstadisticas('statsPosters', datosGraficas.poster);
-
-    // Actualizar tabla
-    actualizarTabla(categoriaSeleccionada);
+    crearGrafica('graficoJunior', calcularDatosCategoria('junior'), 'Casos Junior');
+    crearGrafica('graficoSenior', calcularDatosCategoria('senior'), 'Casos Senior');
+    crearGrafica('graficoPosters', calcularDatosCategoria('poster'), 'Posters');
 }
 
 // Calcular datos para una categoría
@@ -337,12 +335,10 @@ function calcularDatosCategoria(categoria) {
         };
     });
 
-    // Calcular porcentajes
     datos.forEach(dato => {
         dato.porcentaje = totalVotos > 0 ? ((dato.votos / totalVotos) * 100).toFixed(1) : 0;
     });
 
-    // Ordenar por votos descendentes y tomar top 10
     datos.sort((a, b) => b.votos - a.votos);
     
     return {
@@ -351,159 +347,44 @@ function calcularDatosCategoria(categoria) {
     };
 }
 
-// Crear gráfica de barras
+// Crear gráfica
 function crearGrafica(elementId, datosCategoria, titulo) {
     const ctx = document.getElementById(elementId);
     if (!ctx) return;
 
-    const datos = datosCategoria.datos;
-    const colores = generarColores(datos.length);
-
-    // Destruir gráfica anterior si existe
     if (graficos[elementId]) {
         graficos[elementId].destroy();
     }
+
+    const datos = datosCategoria.datos;
+    const colores = ['#667eea', '#48bb78', '#ed8936'];
+    const color = elementId.includes('Junior') ? colores[0] : elementId.includes('Senior') ? colores[1] : colores[2];
 
     graficos[elementId] = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: datos.map(d => d.codigo),
             datasets: [{
-                label: 'Votos (%)',
-                data: datos.map(d => d.porcentaje),
-                backgroundColor: colores,
-                borderColor: colores.map(c => c.replace('0.7', '1')),
+                label: 'Votos',
+                data: datos.map(d => d.votos),
+                backgroundColor: color,
+                borderColor: color,
                 borderWidth: 2
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             indexAxis: 'y',
             plugins: {
-                legend: {
-                    display: false
-                },
-                title: {
-                    display: true,
-                    text: titulo
-                }
+                legend: { display: false },
+                title: { display: true, text: titulo }
             },
             scales: {
-                x: {
-                    beginAtZero: true,
-                    max: 100,
-                    ticks: {
-                        callback: function(value) {
-                            return value + '%';
-                        }
-                    }
-                }
+                x: { beginAtZero: true }
             }
         }
     });
-}
-
-// Generar colores para gráficas
-function generarColores(cantidad) {
-    const coloresBase = [
-        'rgba(102, 126, 234, 0.7)',
-        'rgba(240, 124, 124, 0.7)',
-        'rgba(75, 192, 192, 0.7)',
-        'rgba(255, 193, 7, 0.7)',
-        'rgba(156, 39, 176, 0.7)',
-        'rgba(255, 87, 34, 0.7)',
-        'rgba(33, 150, 243, 0.7)',
-        'rgba(76, 175, 80, 0.7)',
-        'rgba(233, 30, 99, 0.7)',
-        'rgba(0, 150, 136, 0.7)'
-    ];
-
-    return coloresBase.slice(0, cantidad);
-}
-
-// Mostrar estadísticas
-function mostrarEstadisticas(elementId, datosCategoria) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-
-    let html = '';
-    datosCategoria.datos.forEach(dato => {
-        html += `
-            <div class="stat-item">
-                <span>${dato.codigo}</span>
-                <span>${dato.votos} votos (${dato.porcentaje}%)</span>
-            </div>
-        `;
-    });
-
-    element.innerHTML = html;
-}
-
-// Actualizar tabla de votos
-function actualizarTabla(categoriaFiltro) {
-    const tbody = document.querySelector('.tabla-votos tbody');
-    if (!tbody) return;
-
-    tbody.innerHTML = '';
-
-    let casos = [];
-    
-    if (categoriaFiltro === 'todos') {
-        casos = [
-            ...casosData.junior.map(c => ({ ...c, categoria: 'junior' })),
-            ...casosData.senior.map(c => ({ ...c, categoria: 'senior' })),
-            ...casosData.posters.map(c => ({ ...c, categoria: 'poster' }))
-        ];
-    } else {
-        const key = categoriaFiltro === 'poster' ? 'posters' : categoriaFiltro;
-        casos = casosData[key].map(c => ({ ...c, categoria: categoriaFiltro }));
-    }
-
-    casos.forEach(caso => {
-        const voto = votosData[caso.codigo] || { votos: 0 };
-        
-        // Calcular porcentaje
-        const totalCategoria = calcularDatosCategoria(caso.categoria).totalVotos;
-        const porcentaje = totalCategoria > 0 ? ((voto.votos / totalCategoria) * 100).toFixed(1) : '0.0';
-
-        const row = tbody.insertRow();
-        row.innerHTML = `
-            <td>${caso.codigo}</td>
-            <td>${caso.nombre}</td>
-            <td><strong>${caso.categoria.toUpperCase()}</strong></td>
-            <td>${voto.votos}</td>
-            <td>${porcentaje}%</td>
-        `;
-    });
-}
-
-// Actualizar estadísticas generales
-function actualizarEstadisticas() {
-    let totalVotos = 0;
-    let votosJunior = 0;
-    let votosSenior = 0;
-    let votosPosters = 0;
-
-    for (let codigo in votosData) {
-        const voto = votosData[codigo];
-        totalVotos += voto.votos;
-        
-        if (voto.categoria === 'junior') votosJunior += voto.votos;
-        else if (voto.categoria === 'senior') votosSenior += voto.votos;
-        else if (voto.categoria === 'poster') votosPosters += voto.votos;
-    }
-
-    document.getElementById('totalVotos').textContent = totalVotos;
-    document.getElementById('votosJunior').textContent = votosJunior;
-    document.getElementById('votosSenior').textContent = votosSenior;
-    document.getElementById('votosPosters').textContent = votosPosters;
-
-    // Contar dispositivos únicos
-    const dispositivos = new Set();
-    for (let codigo in votosData) {
-        votosData[codigo].dispositivos.forEach(d => dispositivos.add(d));
-    }
-    document.getElementById('totalDispositivos').textContent = dispositivos.size;
 }
 
 // Exportar datos
@@ -530,31 +411,18 @@ function exportarDatos() {
     mostrarMensaje('✅ Datos exportados exitosamente', 'success');
 }
 
-// Limpiar base de datos
-function limpiarBaseDatos() {
-    if (confirm('⚠️ ¿Estás seguro? Esto borrará todos los votos registrados.')) {
-        localStorage.removeItem('votosData');
-        inicializarLocalStorage();
-        actualizarEstadisticas();
-        actualizarResultados();
-        mostrarMensaje('✅ Base de datos limpiada', 'success');
-    }
-}
-
-// Generar QRs para impresión - VERSIÓN MEJORADA
+// Generar QRs para impresión
 function generarQRsParaImpresion() {
-    mostrarMensaje('⏳ Generando QRs... Por favor espera.', 'info');
+    mostrarMensaje('⏳ Generando QRs...', 'info');
     
-    // Crear un documento para descargar con todos los QRs
     let html = `
     <html>
     <head>
         <meta charset="UTF-8">
-        <title>QRs para Impresión - Expo Logística UPEC 2026</title>
+        <title>QRs para Impresión</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
         <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: Arial, sans-serif; padding: 20px; background: white; }
+            body { font-family: Arial; padding: 20px; }
             .qr-container { 
                 page-break-inside: avoid;
                 display: inline-block; 
@@ -563,35 +431,24 @@ function generarQRsParaImpresion() {
                 border: 2px solid #ccc;
                 text-align: center;
                 width: 280px;
-                background: white;
-                vertical-align: top;
             }
-            .qr-container h3 { margin: 10px 0; font-size: 18px; font-weight: bold; }
-            .qr-container p { margin: 8px 0; font-size: 11px; line-height: 1.4; }
+            .qr-container h3 { margin: 10px 0; font-size: 18px; }
+            .qr-container p { margin: 8px 0; font-size: 11px; }
             .qr-box { margin: 15px auto; }
-            .qr-box canvas { max-width: 100%; height: auto; border: 1px solid #ddd; }
-            .categoria { 
-                font-weight: bold; 
-                padding: 8px 12px; 
-                border-radius: 3px;
-                display: inline-block;
-                margin-bottom: 10px;
-                font-size: 12px;
-            }
-            .junior { background: #FFE699; color: #000; }
-            .senior { background: #B4C6E7; color: #000; }
-            .poster { background: #C5E0B4; color: #000; }
-            h1 { text-align: center; color: #1f4e78; margin: 30px 0 20px 0; font-size: 24px; }
-            h2 { color: #1f4e78; margin: 40px 0 20px 0; font-size: 18px; border-bottom: 3px solid #1f4e78; padding-bottom: 10px; }
+            .qr-box canvas { max-width: 100%; }
+            .categoria { font-weight: bold; padding: 8px 12px; border-radius: 3px; display: inline-block; margin-bottom: 10px; font-size: 12px; }
+            .junior { background: #FFE699; }
+            .senior { background: #B4C6E7; }
+            .poster { background: #C5E0B4; }
+            h1 { text-align: center; color: #1f4e78; }
+            h2 { color: #1f4e78; margin-top: 30px; border-bottom: 2px solid #1f4e78; }
             .wrapper { display: flex; flex-wrap: wrap; justify-content: center; }
-            .codigo-bajo { font-weight: bold; margin-top: 10px; font-size: 14px; }
         </style>
     </head>
     <body>
-        <h1>🎯 Códigos QR - Expo Logística y Transporte UPEC 2026</h1>
+        <h1>Códigos QR - Expo Logística UPEC 2026</h1>
     `;
 
-    // CASOS JUNIOR
     html += '<h2>CASOS JUNIOR</h2><div class="wrapper">';
     casosData.junior.forEach((caso, idx) => {
         html += `
@@ -600,13 +457,12 @@ function generarQRsParaImpresion() {
                 <h3>${caso.codigo}</h3>
                 <p>${caso.nombre.substring(0, 45)}...</p>
                 <div class="qr-box" id="qr_junior_${idx}"></div>
-                <div class="codigo-bajo">${caso.codigo}</div>
+                <p style="font-weight: bold;">${caso.codigo}</p>
             </div>
         `;
     });
     html += '</div>';
 
-    // CASOS SENIOR
     html += '<h2>CASOS SENIOR</h2><div class="wrapper">';
     casosData.senior.forEach((caso, idx) => {
         html += `
@@ -615,14 +471,13 @@ function generarQRsParaImpresion() {
                 <h3>${caso.codigo}</h3>
                 <p>${caso.nombre.substring(0, 45)}...</p>
                 <div class="qr-box" id="qr_senior_${idx}"></div>
-                <div class="codigo-bajo">${caso.codigo}</div>
+                <p style="font-weight: bold;">${caso.codigo}</p>
             </div>
         `;
     });
     html += '</div>';
 
-    // POSTERS
-    html += '<h2>POSTERS - TRABAJOS DE INTEGRACIÓN CURRICULAR</h2><div class="wrapper">';
+    html += '<h2>POSTERS</h2><div class="wrapper">';
     casosData.posters.forEach((caso, idx) => {
         html += `
             <div class="qr-container">
@@ -630,78 +485,41 @@ function generarQRsParaImpresion() {
                 <h3>${caso.codigo}</h3>
                 <p>${caso.nombre.substring(0, 45)}...</p>
                 <div class="qr-box" id="qr_poster_${idx}"></div>
-                <div class="codigo-bajo">${caso.codigo}</div>
+                <p style="font-weight: bold;">${caso.codigo}</p>
             </div>
         `;
     });
-    html += '</div>';
+    html += '</div></body></html>';
 
-    html += '<script>console.log("Iniciando generación de QRs...");<\/script>';
-    html += '</body></html>';
-
-    // Crear ventana nueva
-    const newWindow = window.open('', 'QRs', 'width=1400,height=900');
+    const newWindow = window.open('', '', 'width=1400,height=900');
     newWindow.document.write(html);
     newWindow.document.close();
 
-    // Generar QRs con delay para garantizar que se carguen
     setTimeout(() => {
-        try {
-            casosData.junior.forEach((caso, idx) => {
-                try {
-                    const element = newWindow.document.getElementById(`qr_junior_${idx}`);
-                    if (element) {
-                        new QRCode(element, {
-                            text: caso.codigo,
-                            width: 180,
-                            height: 180,
-                            colorDark: "#000000",
-                            colorLight: "#ffffff"
-                        });
-                    }
-                } catch(e) {
-                    console.log('Error QR Junior', idx, e);
-                }
+        casosData.junior.forEach((caso, idx) => {
+            new QRCode(newWindow.document.getElementById(`qr_junior_${idx}`), {
+                text: caso.codigo,
+                width: 180,
+                height: 180
             });
+        });
 
-            casosData.senior.forEach((caso, idx) => {
-                try {
-                    const element = newWindow.document.getElementById(`qr_senior_${idx}`);
-                    if (element) {
-                        new QRCode(element, {
-                            text: caso.codigo,
-                            width: 180,
-                            height: 180,
-                            colorDark: "#000000",
-                            colorLight: "#ffffff"
-                        });
-                    }
-                } catch(e) {
-                    console.log('Error QR Senior', idx, e);
-                }
+        casosData.senior.forEach((caso, idx) => {
+            new QRCode(newWindow.document.getElementById(`qr_senior_${idx}`), {
+                text: caso.codigo,
+                width: 180,
+                height: 180
             });
+        });
 
-            casosData.posters.forEach((caso, idx) => {
-                try {
-                    const element = newWindow.document.getElementById(`qr_poster_${idx}`);
-                    if (element) {
-                        new QRCode(element, {
-                            text: caso.codigo,
-                            width: 180,
-                            height: 180,
-                            colorDark: "#000000",
-                            colorLight: "#ffffff"
-                        });
-                    }
-                } catch(e) {
-                    console.log('Error QR Poster', idx, e);
-                }
+        casosData.posters.forEach((caso, idx) => {
+            new QRCode(newWindow.document.getElementById(`qr_poster_${idx}`), {
+                text: caso.codigo,
+                width: 180,
+                height: 180
             });
+        });
 
-            mostrarMensaje('✅ QRs generados correctamente. Imprime desde la nueva ventana (Ctrl+P)', 'success');
-        } catch(e) {
-            mostrarMensaje('⚠️ QRs generados. Si no ves los códigos, intenta recargar (Ctrl+R)', 'info');
-            console.log('Error general:', e);
-        }
+        mostrarMensaje('✅ QRs generados. Imprime desde la nueva ventana (Ctrl+P)', 'success');
     }, 1000);
 }
