@@ -32,15 +32,8 @@
             text-align: center;
         }
 
-        header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-
-        header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
+        header h1 { font-size: 28px; margin-bottom: 10px; }
+        header p { font-size: 14px; opacity: 0.9; }
 
         .nav-tabs {
             display: flex;
@@ -64,32 +57,18 @@
             min-width: 120px;
         }
 
-        .nav-btn:hover {
-            background: #eee;
-        }
-
+        .nav-btn:hover { background: #eee; }
         .nav-btn.active {
             color: #1f4e78;
             border-bottom: 3px solid #1f4e78;
             background: white;
         }
 
-        .content {
-            padding: 30px;
-        }
+        .content { padding: 30px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .scanner-section {
-            text-align: center;
-        }
-
+        .scanner-section { text-align: center; }
         .scanner-box {
             max-width: 400px;
             margin: 20px auto;
@@ -100,16 +79,8 @@
             position: relative;
         }
 
-        video {
-            width: 100%;
-            display: block;
-            background: #000;
-            max-height: 400px;
-        }
-
-        canvas {
-            display: none;
-        }
+        video { width: 100%; display: block; background: #000; max-height: 400px; }
+        canvas { display: none; }
 
         .button-group {
             display: flex;
@@ -129,32 +100,12 @@
             transition: all 0.3s;
         }
 
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5568d3;
-        }
-
-        .btn-success {
-            background: #48bb78;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #38a169;
-        }
-
-        .btn-danger {
-            background: #f56565;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #e53e3e;
-        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5568d3; }
+        .btn-success { background: #48bb78; color: white; }
+        .btn-success:hover { background: #38a169; }
+        .btn-danger { background: #f56565; color: white; }
+        .btn-danger:hover { background: #e53e3e; }
 
         .mensaje {
             padding: 15px;
@@ -165,27 +116,10 @@
             display: none;
         }
 
-        .mensaje.show {
-            display: block;
-        }
-
-        .mensaje.success {
-            background: #c6f6d5;
-            color: #22543d;
-            border: 2px solid #9ae6b4;
-        }
-
-        .mensaje.error {
-            background: #fed7d7;
-            color: #742a2a;
-            border: 2px solid #fc8181;
-        }
-
-        .mensaje.info {
-            background: #bee3f8;
-            color: #2c5282;
-            border: 2px solid #90cdf4;
-        }
+        .mensaje.show { display: block; }
+        .mensaje.success { background: #c6f6d5; color: #22543d; border: 2px solid #9ae6b4; }
+        .mensaje.error { background: #fed7d7; color: #742a2a; border: 2px solid #fc8181; }
+        .mensaje.info { background: #bee3f8; color: #2c5282; border: 2px solid #90cdf4; }
 
         .info-box {
             background: #edf2f7;
@@ -195,10 +129,7 @@
             margin: 20px 0;
         }
 
-        .info-box p {
-            margin: 10px 0;
-            font-size: 16px;
-        }
+        .info-box p { margin: 10px 0; font-size: 16px; }
 
         .input-group {
             display: flex;
@@ -234,9 +165,7 @@
             z-index: 1000;
         }
 
-        .modal.show {
-            display: flex;
-        }
+        .modal.show { display: flex; }
 
         .modal-content {
             background: white;
@@ -247,16 +176,8 @@
             text-align: center;
         }
 
-        .modal-content h2 {
-            margin-bottom: 20px;
-            color: #1f4e78;
-        }
-
-        .modal-content p {
-            margin: 15px 0;
-            font-size: 16px;
-            color: #666;
-        }
+        .modal-content h2 { margin-bottom: 20px; color: #1f4e78; }
+        .modal-content p { margin: 15px 0; font-size: 16px; color: #666; }
 
         .stats-grid {
             display: grid;
@@ -273,16 +194,8 @@
             text-align: center;
         }
 
-        .stat-card h3 {
-            font-size: 14px;
-            opacity: 0.9;
-            margin-bottom: 10px;
-        }
-
-        .stat-card .number {
-            font-size: 32px;
-            font-weight: bold;
-        }
+        .stat-card h3 { font-size: 14px; opacity: 0.9; margin-bottom: 10px; }
+        .stat-card .number { font-size: 32px; font-weight: bold; }
 
         .chart-container {
             position: relative;
@@ -301,14 +214,14 @@
         <div class="nav-tabs">
             <button class="nav-btn active" data-tab="escanear">📱 Escanear QR</button>
             <button class="nav-btn" data-tab="resultados">📊 Ver Resultados</button>
-            <button class="nav-btn" data-tab="admin">⚙️ Administración</button>
+            <button class="nav-btn" data-tab="info">ℹ️ Información</button>
         </div>
 
         <div class="content">
-            <!-- TAB ESCANEAR -->
+            <!-- TAB ESCANEAR/VOTAR -->
             <div id="escanear" class="tab-content active">
                 <div class="scanner-section">
-                    <h2>Escanea el QR del caso para votar</h2>
+                    <h2>Ingresa el código del caso para votar</h2>
                     
                     <div class="scanner-box">
                         <video id="videoScanner" playsinline></video>
@@ -317,28 +230,28 @@
 
                     <div class="button-group">
                         <button class="btn-primary" onclick="iniciarScanner()">📷 Iniciar Cámara</button>
-                        <button class="btn-danger" onclick="detenerScanner()">⛔ Detener Cámara</button>
+                        <button class="btn-danger" onclick="detenerScanner()">⛔ Detener</button>
                     </div>
 
                     <div id="mensaje" class="mensaje"></div>
 
-                    <h3 style="margin-top: 30px;">O digita el código manualmente</h3>
+                    <h3 style="margin-top: 30px;">Digita el código del caso</h3>
                     <div class="input-group">
-                        <input type="text" id="codigoManual" placeholder="Ej: J4-03" />
+                        <input type="text" id="codigoManual" placeholder="Ej: J4-03, S5-01, TIC-1" maxlength="10" />
                         <button class="btn-primary" onclick="procesarCodigoManual()">Votar</button>
                     </div>
 
                     <div class="info-box">
-                        <p><strong>Categoría Seleccionada:</strong> <span id="categoriaActual">Ninguna</span></p>
-                        <p><strong>Caso/Poster:</strong> <span id="casoActual">Esperando escaneo</span></p>
-                        <p><strong>Estado:</strong> <span id="estadoActual">Listo para escanear</span></p>
+                        <p><strong>Categoría:</strong> <span id="categoriaActual">Esperando</span></p>
+                        <p><strong>Caso:</strong> <span id="casoActual">Esperando entrada</span></p>
+                        <p><strong>Estado:</strong> <span id="estadoActual">Listo para votar</span></p>
                     </div>
                 </div>
 
                 <!-- Modal de confirmación -->
                 <div id="modalVoto" class="modal">
                     <div class="modal-content">
-                        <h2>¿Deseas votar por este caso?</h2>
+                        <h2>¿Confirmas tu voto?</h2>
                         <div id="detalleVoto" style="margin: 20px 0;"></div>
                         <div class="button-group">
                             <button class="btn-success" onclick="confirmarVoto()">✓ Sí, Votar</button>
@@ -387,20 +300,40 @@
                 </div>
             </div>
 
-            <!-- TAB ADMIN -->
-            <div id="admin" class="tab-content">
-                <h2>Panel de Administración</h2>
+            <!-- TAB INFORMACIÓN -->
+            <div id="info" class="tab-content">
+                <h2>Información del Sistema</h2>
                 
-                <div class="button-group">
-                    <button class="btn-primary" onclick="generarQRsParaImpresion()">📋 Generar QRs para Impresión</button>
-                    <button class="btn-primary" onclick="exportarDatos()">📥 Descargar Datos JSON</button>
-                    <button class="btn-danger" onclick="limpiarBaseDatos()">🗑️ Limpiar Base de Datos</button>
+                <div class="info-box">
+                    <h3>📊 Estado de Votación</h3>
+                    <p><strong>Dispositivos Únicos Votando:</strong> <span id="totalDispositivos">0</span></p>
+                    <p style="margin-top: 15px; font-size: 14px; color: #666;">
+                        <strong>Tu Dispositivo:</strong> <span id="dispositivoId" style="word-break: break-all;"></span>
+                    </p>
                 </div>
 
-                <div class="info-box" style="margin-top: 30px;">
-                    <h3>Información del Sistema</h3>
-                    <p><strong>Dispositivos Únicos que Votaron:</strong> <span id="totalDispositivos">0</span></p>
-                    <p><strong>Dispositivo ID:</strong> <span id="dispositivoId" style="word-break: break-all;"></span></p>
+                <div class="info-box">
+                    <h3>✅ Cómo Usar el Sistema</h3>
+                    <p>1️⃣ Ve a la pestaña <strong>"Escanear QR"</strong></p>
+                    <p>2️⃣ <strong>Digita el código</strong> del caso (ej: J4-03)</p>
+                    <p>3️⃣ Haz clic en <strong>"Votar"</strong></p>
+                    <p>4️⃣ <strong>Confirma tu voto</strong> en la ventana</p>
+                    <p>5️⃣ ¡Listo! Tu voto se registró</p>
+                </div>
+
+                <div class="info-box">
+                    <h3>⚙️ Reglas de Votación</h3>
+                    <p>✅ Puedes votar <strong>UNA VEZ por categoría</strong></p>
+                    <p>✅ No se permiten <strong>votos duplicados</strong></p>
+                    <p>✅ Los votos se guardan <strong>automáticamente</strong></p>
+                    <p>✅ Los datos son <strong>privados y seguros</strong></p>
+                </div>
+
+                <div class="info-box">
+                    <h3>📋 Códigos de Casos</h3>
+                    <p><strong>Junior:</strong> J4-03, J3-05, J4-05, J2-06, J2-10, J4-02, J2-02, J3-04, J3-03, J2-01</p>
+                    <p><strong>Senior:</strong> S5-01, S5-02, S8-01, S6-06, S8-02, S6-03, S5-04, S7-05, S6-01, S6-04</p>
+                    <p><strong>Posters:</strong> TIC-1 a TIC-24</p>
                 </div>
             </div>
         </div>
@@ -431,7 +364,7 @@
             const canvas = document.getElementById('canvasScanner');
             
             if (!video || !canvas) {
-                mostrarMensaje('Error: Elementos de video no encontrados', 'error');
+                mostrarMensaje('Error: Elementos no encontrados', 'error');
                 return;
             }
 
@@ -475,10 +408,10 @@
                 
                 window.scanningProcess = { scan, scanning: () => scanning, stop: () => { scanning = false; } };
                 scan();
-                mostrarMensaje('✅ Cámara iniciada. Apunta a un código QR.', 'info');
+                mostrarMensaje('✅ Cámara iniciada', 'info');
                 
             }).catch(err => {
-                mostrarMensaje('❌ Error al acceder a la cámara: ' + err.message, 'error');
+                mostrarMensaje('❌ Error: ' + err.message, 'error');
                 console.error('Error:', err);
             });
         }
