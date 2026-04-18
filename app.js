@@ -1,5 +1,5 @@
-// URL de Google Apps Script (LA QUE CONFIGURASTE)
-const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRpD_EgbzXa7qhlfMbehCE8CJeg66iHDmVjo9TbEnxn8qVm_zdetW5lWPsamjSNDlh/exec';
+// URL de Google Apps Script (URL NUEVA)
+const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJai_6moSJq_OOz5gL2osCbxTZ2JU-pDgoSaLJO9GFaxh9-G30w_pf7qWpjkCwy/exec';
 
 let casosData = {};
 let yaVoto = false;
@@ -150,4 +150,5 @@ function obtenerIdDispositivo() {
     }
     return id;
 }
+
 
